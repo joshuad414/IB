@@ -12,12 +12,10 @@ qqq = 'QQQ'
 aapl = 'AAPL'
 msft = 'MSFT'
 nio = 'NIO'
-amd = 'AMD'
-nvda = 'NVDA'
-ba = 'BA'
+cciv ='CCIV'
 
 # Variables
-shares_buy = 100
+shares_buy = 10
 shares_sold = shares_buy * 0.2
 total_shares_sold = 0
 total_shares_remain = shares_buy
@@ -27,21 +25,47 @@ sell_2_price = 1.05
 sell_3_price = 1.1
 sell_4_price = 1.15
 sell_5_price = 1.2
-rally_percentage = 0.0008 # rally percentage from open to close of 1st rally candle
+rally_percentage = 0.0008  # rally percentage from open to close of 1st rally candle
 basing_percentage = 0.9  # basing candle percentage from open to close of previous rally candle
 
 # equity to watch
-stock = spy
+stock = aapl
 stock = Stock(stock, 'SMART', 'USD')
 
 # Get Historical Ticker Data
-bar = ib.reqHistoricalData(stock, endDateTime='', durationStr='1 D', barSizeSetting='1 min',
+bar = ib.reqHistoricalData(stock, endDateTime='', durationStr='1 D', barSizeSetting='5 mins',
                            whatToShow='MIDPOINT', useRTH=True, keepUpToDate=True)
 
 
 def on_bar_update(bars: BarDataList, has_new_bar: bool):
     if has_new_bar:
         newdf = util.df(bars)
+
+
+def update_rbr_data(df):
+    df.drop(['volume', 'average', 'barCount'], axis=1, inplace=True)
+    df['date'] = df['date'].dt.strftime('%H:%M')
+    df['open_close'] = (df['close'].values - df['open'].values) / df['open'].values
+    df['open_high'] = (df['high'].values - df['open'].values) / df['open'].values
+    df['high1'] = df['high'].shift().values
+    df['high2'] = df['high'].shift(periods=2).values
+    df['high_high'] = (df['high'].values > df['high1'].values) & (df['high'].values > df['high2'].values)
+    df['rally'] = df['open_close'].values > rally_percentage
+    df['rally2'] = df['high_high'].values == True
+    df['base'] = ((df['rally'].shift().values == True) | (df['rally2'].shift().values == True)) \
+                 & ((abs(df['open_close'].values) / abs(df['open_close'].shift().values)) < basing_percentage) \
+                 & (df['open_close'].values < 0)
+    df['rbr'] = (df['rally2'].values == True) \
+                & (df['base'].shift().values == True) \
+                & (df['rally'].shift(periods=2).values == True)
+    df['rbr2'] = (df['rbr'].values == True) \
+                 | (df['rbr'].shift(periods=-1).values == True) \
+                 | (df['rbr'].shift(periods=-2).values == True)
+    df['onWatch'] = (df['open_close'].values < 0) \
+                    & (df['rally'].shift().values == True) \
+                    & ((abs(df['open_close'].values) / abs(df['open_close'].shift().values)) < basing_percentage)
+    df = df.drop(columns=['open_close', 'open_high', 'high1', 'high2', 'high_high', 'base', 'rally', 'rally2', 'rbr'])
+    df = df.rename(columns={'rbr2': 'rbr'})
 
 
 # get market data for stock
@@ -51,9 +75,10 @@ market_data = ib.reqMktData(stock, '', False, False)
 # method to pull live ticker data and compare it to previous bar high value and buy/sell
 def on_pending_ticker(ticker):
     df = util.df(bar)
+    update_rbr_data(df)
     base_high = df['high'].values[-2]                   # high value from basing candle
     watching = df['onWatch'].values[-2]                 # pulls boolean from onWatch column for the last closed candle
-    basing_open = df['base'].values[-2]                 # pulls boolean from base column for the last closed candle
+    basing_open = df['open'].values[-2]                 # pulls boolean from base column for the last closed candle
     last_price = market_data.last                       # get last ticker price
     # check if last price is above vwap
     day_value = last_price - df['open'].values[0]       # check if stock is positive or negative for the day
@@ -67,16 +92,16 @@ def on_pending_ticker(ticker):
         executed_trades = ib.reqExecutions()            # pulls list of executed trades from IB
         count += 1                                      # adds 1 to executed trade count
 
-        last_price = market_data.last                   # get last ticker price
+        executed_trade_price = market_data.last                   # get last ticker price
         # may need to remove and set executed trade
         # price to last market data price at time of stock buy
-        i = 1
-        while i < len(executed_trades):
-            if i == (count-1):
-                executed_trade_price = executed_trades[i][1].price
-                print('Buy Executed:', shares_buy, stock, "@", executed_trade_price)
-                break
-            i += 1
+        # i = 1
+        # while i < len(executed_trades):
+        #     if i == (count-1):
+        #         executed_trade_price = executed_trades[i][1].price
+        #         print('Buy Executed:', shares_buy, stock, "@", executed_trade_price)
+        #         break
+        #     i += 1
         while last_price > basing_open:
             t1 = time.time()
             total_time = t1 - t0
@@ -123,7 +148,7 @@ def on_pending_ticker(ticker):
             trade = ib.placeOrder(stock, sell)
             print('Sell Executed:', total_shares_remain * 5, stock, "@", executed_trade_price)
     else:
-        print('Last Price:', last_price, ', Basing Candle High:', base_high)
+        print(aapl, 'Last Price:', last_price, ', Basing Candle High:', base_high, ', Basing Candle Open:', basing_open, watching)
 
 ib.barUpdateEvent += on_bar_update
 ib.pendingTickersEvent += on_pending_ticker
