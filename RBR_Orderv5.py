@@ -2,17 +2,10 @@ from ib_insync import *
 import time
 import pandas as pd
 import numpy as np
+from Requirements import stock
 
 ib = IB()
 ib.connect('127.0.0.1', 7497, clientId=1)
-
-# equities
-spy = 'SPY'
-qqq = 'QQQ'
-aapl = 'AAPL'
-msft = 'MSFT'
-nio = 'NIO'
-cciv ='CCIV'
 
 # Variables
 shares_buy = 10
@@ -29,7 +22,7 @@ rally_percentage = 0.0008  # rally percentage from open to close of 1st rally ca
 basing_percentage = 0.9  # basing candle percentage from open to close of previous rally candle
 
 # equity to watch
-stock = aapl
+# stock = 'AAPL'
 stock = Stock(stock, 'SMART', 'USD')
 
 # Get Historical Ticker Data
@@ -148,7 +141,7 @@ def on_pending_ticker(ticker):
             trade = ib.placeOrder(stock, sell)
             print('Sell Executed:', total_shares_remain * 5, stock, "@", executed_trade_price)
     else:
-        print(aapl, 'Last Price:', last_price, ', Basing Candle High:', base_high, ', Basing Candle Open:', basing_open, watching)
+        print('AAPL', 'Last Price:', last_price, ', Basing Candle High:', base_high, ', Basing Candle Open:', basing_open, watching)
 
 ib.barUpdateEvent += on_bar_update
 ib.pendingTickersEvent += on_pending_ticker
