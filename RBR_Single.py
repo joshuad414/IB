@@ -53,7 +53,6 @@ def update_rbr_data(df):
                     & ((abs(df['open_close'].values) / abs(df['open_close'].shift().values)) < basing_percentage)
     df['Symbol'] = x
     df['basing_percent'] = df['open'].values / df['open'].shift().values
-    #df = df.drop(columns=['open_close', 'open_high', 'high1', 'high2', 'high_high', 'base', 'rally', 'rally2', 'rbr'])
     df = df.drop(columns=['rbr'])
     df = df.rename(columns={'rbr2': 'rbr'})
     df.to_csv('historical_data.csv')
@@ -61,30 +60,17 @@ def update_rbr_data(df):
     df_rbr.to_csv('rbr.csv')
 
 
-# option data
-strike_price = 121
-option_month = str(time.localtime().tm_mon)
-option_year = str(time.localtime().tm_year)
-if len(option_month) == 1:
-    option_month = '0' + option_month
-option_contract = Option(aapl, '20210401', strike_price, 'C', 'SMART', '100', 'USD')
-
 # Stock Ticker Data
 market_data = ib.reqMktData(stock, '', False, False)
 
 
 def on_pending_ticker(ticker):
     df = util.df(bar)
-    #update_rbr_data(df)
     open_candle = df['open'][len(df) - 2]
     time_candle = df['date'][len(df) - 2]
     last_price = market_data.last
     print(x, 'Last Price:', last_price, open_candle)
-    # if last_price >= 121.25:
-    #     mark_order = MarketOrder('BUY', 1)
-    #     trade = ib.placeOrder(option_contract, mark_order)
-    #     ib.disconnect()
-    #     print('Order Filled')
+
 
 
 ib.barUpdateEvent += on_bar_update
