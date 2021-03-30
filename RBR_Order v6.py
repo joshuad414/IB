@@ -67,13 +67,13 @@ def on_pending_ticker(ticker):
     global count, trades, executed_trade_price
 
     df = util.df(bar)
-    base_high = df['high'].values[-2]                # high value from basing candle
-    watching = df['onWatch'].values[-2]              # pulls boolean from onWatch column for the last closed candle
-    basing_open = df['open'].values[-2]              # pulls boolean from base column for the last closed candle
+    base_high = df['high'].values[-2]                      # high value from basing candle
+    watching = df['onWatch'].values[-2]                    # boolean from onWatch column for the last closed candle
+    basing_open = df['open'].values[-2]                    # pulls boolean from base column for the last closed candle
     last_price_stock = market_data.last                    # get last ticker price
     day_value = last_price_stock - df['open'].values[0]    # check if stock is positive or negative for the day
     last_price_option = option_data.last
-    # strike_price = np.floor(base_high)               # gets strike price using the floor of the basing candle
+    # strike_price = np.floor(base_high)                   # gets strike price using the floor of the basing candle
 
     # Buy x (5/5)
     if last_price_stock > base_high and watching == True and count == 0 and trades == 0:
