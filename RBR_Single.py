@@ -1,6 +1,7 @@
 from ib_insync import *
 import time
 from Requirements import stock
+import pandas as pd
 
 ib = IB()
 ib.connect('127.0.0.1', 7497, clientId=3)
@@ -17,16 +18,15 @@ x = stock
 
 stock = Stock(stock, 'SMART', 'USD')
 bar_time_frame = '5 mins'
-rt_hours = True
+rt_hours = False
 
-bar = ib.reqHistoricalData(stock, endDateTime='', durationStr='1 D', barSizeSetting=bar_time_frame,
+bar = ib.reqHistoricalData(stock, endDateTime='', durationStr='1 D', barSizeSetting='1 min',
                            whatToShow='MIDPOINT', useRTH=rt_hours, keepUpToDate=True)
 
 
 def on_bar_update(bars: BarDataList, has_new_bar: bool):
     if has_new_bar:
-        df2 = util.df(bars)
-        update_rbr_data(df2)
+        df = util.df(bars)
 
 
 def update_rbr_data(df):
@@ -64,11 +64,23 @@ def update_rbr_data(df):
 market_data = ib.reqMktData(stock, '', False, False)
 
 
+open = []
+close = []
+
+
 def on_pending_ticker(ticker):
+    global open, close
     df = util.df(bar)
     open_candle = df['open'][len(df) - 2]
-    time_candle = df['date'][len(df) - 2]
     last_price = market_data.last
+
+    open_price = df['open'].values[-1]
+    close_price = df['close'].values[-1]
+    open.append(open_price)
+    close.append(close_price)
+    trade_data = pd.DataFrame({'Open':open, 'Close':close})
+    trade_data.to_csv('test.csv')
+
     print(x, 'Last Price:', last_price, open_candle)
 
 

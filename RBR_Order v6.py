@@ -1,19 +1,10 @@
 from ib_insync import *
 import numpy as np
-from Requirements import symbol, basing_percentage, rally_percentage, option_date, strike_price
+import pandas as pd
+from Requirements import symbol, basing_percentage, rally_percentage, option_date, strike_price, qty_buy, qty_sold, sell_1_price, sell_2_price, sell_3_price, sell_4_price, sell_5_price
 
 ib = IB()
 ib.connect('127.0.0.1', 7497, clientId=1)
-
-# Variables
-qty_buy = 10
-qty_sold = qty_buy * (1/5)
-time_threshold = 240
-sell_1_price = 1.025
-sell_2_price = 1.05
-sell_3_price = 1.1
-sell_4_price = 1.15
-sell_5_price = 1.2
 
 
 stock = Stock(symbol, 'SMART', 'USD')
@@ -26,8 +17,7 @@ bar = ib.reqHistoricalData(stock, endDateTime='', durationStr='1 D', barSizeSett
 
 def on_bar_update(bars: BarDataList, has_new_bar: bool):
     if has_new_bar:
-        df2 = util.df(bars)
-        update_rbr_data(df2)
+        df = util.df(bars)
 
 
 def update_rbr_data(df):
@@ -60,13 +50,19 @@ def update_rbr_data(df):
 
 count = 0
 trades = 0
+executed_buy_price = 0
 executed_trade_price = 0
+exec_trade_list = []
+last_price_list = []
+qty_buy_list = []
+qty_sell_list = []
 
 
 def on_pending_ticker(ticker):
-    global count, trades, executed_trade_price
+    global count, trades, executed_buy_price, executed_trade_price, exec_trade_list, last_price_list, qty_buy_list, qty_sell_list
 
     df = util.df(bar)
+    update_rbr_data(df)
     base_high = df['high'].values[-2]                      # high value from basing candle
     watching = df['onWatch'].values[-2]                    # boolean from onWatch column for the last closed candle
     basing_open = df['open'].values[-2]                    # pulls boolean from base column for the last closed candle
@@ -79,47 +75,79 @@ def on_pending_ticker(ticker):
     if last_price_stock > base_high and watching == True and count == 0 and trades == 0:
         ib.placeOrder(option_contract, MarketOrder('BUY', qty_buy))
         count += qty_buy
-        executed_trade_price = option_data.last
+        executed_buy_price = option_data.last
+        exec_trade_list.append(executed_buy_price)
+        last_price_list.append(last_price_stock)
+        qty_buy_list.append(qty_buy)
 
     # Sell x/5 (1/5)
-    elif ((last_price_option * sell_1_price) > executed_trade_price) and count != 0 and trades != 1:
+    elif ((executed_buy_price * sell_1_price) > last_price_option) and count != 0 and trades != 1:
         ib.placeOrder(option_contract, MarketOrder('SELL', qty_sold))
         count -= qty_sold
         trades = 1
+        executed_trade_price = option_data.last
+        exec_trade_list.append(executed_trade_price)
+        last_price_list.append(last_price_stock)
+        qty_sell_list.append(qty_sold)
 
     # Sell x/5 (2/5)
-    elif ((last_price_option * sell_2_price) > executed_trade_price) and count != 0 and trades != 2:
+    elif ((executed_buy_price * sell_2_price) > last_price_option) and count != 0 and trades != 2:
         ib.placeOrder(option_contract, MarketOrder('SELL', qty_sold))
         count -= qty_sold
         trades = 2
+        executed_trade_price = option_data.last
+        exec_trade_list.append(executed_trade_price)
+        last_price_list.append(last_price_stock)
+        qty_sell_list.append(qty_sold)
 
     # Sell x/5 (3/5)
-    elif ((last_price_option * sell_3_price) > executed_trade_price) and count != 0 and trades != 3:
+    elif ((executed_buy_price * sell_3_price) > last_price_option) and count != 0 and trades != 3:
         ib.placeOrder(option_contract, MarketOrder('SELL', qty_sold))
         count -= qty_sold
         trades = 3
+        executed_trade_price = option_data.last
+        exec_trade_list.append(executed_trade_price)
+        last_price_list.append(last_price_stock)
+        qty_sell_list.append(qty_sold)
 
     # Sell x/5 (4/5)
-    elif ((last_price_option * sell_4_price) > executed_trade_price) and count != 0 and trades != 4:
+    elif ((executed_buy_price * sell_4_price) > last_price_option) and count != 0 and trades != 4:
         ib.placeOrder(option_contract, MarketOrder('SELL', qty_sold))
         count -= qty_sold
         trades = 4
+        executed_trade_price = option_data.last
+        exec_trade_list.append(executed_trade_price)
+        last_price_list.append(last_price_stock)
+        qty_sell_list.append(qty_sold)
 
-    # Sell x/5 (4/5)
-    elif ((last_price_option * sell_5_price) > executed_trade_price) and count != 0 and trades != 5:
+    # Sell x/5 (5/5)
+    elif ((executed_buy_price * sell_5_price) > last_price_option) and count != 0 and trades != 5:
         ib.placeOrder(option_contract, MarketOrder('SELL', qty_sold))
         count -= qty_sold
         trades = 5
+        executed_trade_price = option_data.last
+        exec_trade_list.append(executed_trade_price)
+        last_price_list.append(last_price_stock)
+        qty_sell_list.append(qty_sold)
+        trade_data = pd.DataFrame({'Executed Trade Price': exec_trade_list, 'Stock Price': last_price_list,
+                                   'Qty Buy': qty_buy_list, 'Qty Sold': qty_sell_list})
+        trade_data.to_csv('trade_data.csv')
 
     # Sell remaining
-    elif last_price_option < basing_open and count != 0:
+    elif last_price_stock < basing_open and count != 0:
         ib.placeOrder(option_contract, MarketOrder('SELL', count))
         count = 0
         trades = 0
+        exec_trade_list.append(executed_trade_price)
+        last_price_list.append(last_price_stock)
+        qty_sell_list.append(qty_sold)
+        trade_data = pd.DataFrame({'Executed Trade Price':exec_trade_list, 'Stock Price':last_price_list,
+                                  'Qty Buy': qty_buy_list, 'Qty Sold': qty_sell_list})
+        trade_data.to_csv('trade_data.csv')
 
     else:
-        print(symbol, 'Last Price:', last_price_stock, last_price_option, ', Basing Candle High:',
-              base_high, ', Basing Candle Open:', basing_open, watching)
+        print(symbol, 'Last Price:', last_price_stock, last_price_option, '   Basing Candle High:',
+              base_high, '  Open:', basing_open, '    Watching: ', watching, '   Executed Trade Price: ', executed_trade_price, '   Trades: ', trades, '   Count: ', count)
 
 
 ib.barUpdateEvent += on_bar_update

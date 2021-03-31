@@ -1,50 +1,12 @@
 from ib_insync import *
 import pandas as pd
-from Requirements import bar_time_frame_historic, rally_percentage, basing_percentage, duration
+from Requirements import bar_time_frame_historic, rally_percentage, basing_percentage, duration, stock_list
 import numpy as np
 from datetime import datetime
 
 
 ib = IB()
 ib.connect('127.0.0.1', 7497, clientId=5)
-
-#equities
-spy = 'SPY'
-qqq = 'QQQ'
-aapl = 'AAPL'
-msft = 'MSFT'
-nio = 'NIO'
-amd = 'AMD'
-nvda = 'NVDA'
-ba = 'BA'
-cciv = 'CCIV'
-baba = 'BABA'
-nke = 'NKE'
-dis = 'DIS'
-fb = 'FB'
-oxy = 'OXY'
-twtr = 'TWTR'
-tsla = 'TSLA'
-
-
-stock_list = []
-stock_list.append(spy)
-stock_list.append(qqq)
-stock_list.append(aapl)
-stock_list.append(msft)
-stock_list.append(nio)
-stock_list.append(amd)
-stock_list.append(nvda)
-stock_list.append(ba)
-stock_list.append(cciv)
-stock_list.append(baba)
-stock_list.append(nke)
-stock_list.append(dis)
-stock_list.append(fb)
-stock_list.append(oxy)
-stock_list.append(twtr)
-stock_list.append(tsla)
-
 
 
 pd.options.display.float_format = '{:.2f}'.format
