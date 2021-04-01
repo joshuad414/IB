@@ -32,11 +32,11 @@ for x in stock_list:
                   & ((abs(df['open_close'].values) / abs(df['open_close'].shift().values)) < basing_percentage) \
                   & (df['open_close'].values < 0)
     df['rbr'] = (df['rally2'].values == True) \
-                 & (df['base'].shift().values == True) \
-                 & (df['rally'].shift(periods=2).values == True)
+        & (df['base'].shift().values == True) \
+        & (df['rally'].shift(periods=2).values == True)
     df['rbr2'] = (df['rbr'].values == True) \
-                  | (df['rbr'].shift(periods=-1).values == True) \
-                  | (df['rbr'].shift(periods=-2).values == True)
+        | (df['rbr'].shift(periods=-1).values == True) \
+        | (df['rbr'].shift(periods=-2).values == True)
     df['Symbol'] = x
     df['Count'] = 1
     df2 = df2.append(df)

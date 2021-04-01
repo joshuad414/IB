@@ -30,13 +30,13 @@ fb = 'FB'
 oxy = 'OXY'
 twtr = 'TWTR'
 tsla = 'TSLA'
+nflx = 'NFLX'
 
-
-stock = aapl
+stock = nio
 symbol = stock
 
 
-# RBR Single
+# RBR Single/All
 rally_percentage = 0.0007
 basing_percentage = 0.9
 bar_time_frame = '5 mins'
@@ -45,17 +45,17 @@ rt_hours = True
 
 # RBR History
 bar_time_frame_historic = '5 mins'
-duration = '1 D'
+duration = '2 D'
 
 
 # Option Data
+option_day = '01'
 option_month = str(time.localtime().tm_mon+1)
 option_year = str(time.localtime().tm_year)
-if len(option_month) == 1:
+if len(option_month) < 10:
     option_month = '0'+option_month
-option_date = option_year + option_month
-option_date = '20210401'
-strike_price = 119
+option_date = option_year + option_month + option_day
+strike_price = 38
 
 
 # Buying/Selling
@@ -70,4 +70,4 @@ sell_5_price = 1.2
 
 
 # Stock List for RBR All
-stock_list = [spy, qqq, aapl, msft, nio, amd, nvda, ba, cciv, baba, nke, dis, fb, oxy, twtr, tsla]
+stock_list = [spy, qqq, aapl, msft, nio, amd, nvda, ba, cciv, baba, nke, dis, fb, oxy, twtr, tsla, nflx]
