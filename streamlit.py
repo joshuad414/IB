@@ -8,12 +8,13 @@ from datetime import datetime
 import numpy as np
 
 
-
 st.sidebar.title("Interactive Brokers Trading Automation")
-option = st.sidebar.selectbox("Which Dashboard?",('Rally Base Rally', 'Rally Base Rally All', 'Historical RBR','Executed Orders', 'Watch List'), 0)
+option = st.sidebar.selectbox("Which Dashboard?", ('Rally Base Rally', 'Rally Base Rally All', 'Historical RBR',
+                                                   'Executed Orders', 'Watch List'), 0)
 
 if option == 'Rally Base Rally':
-    rally_percentage = st.sidebar.markdown("Minimum Percentage for Candle to be considered a **Rally: "+str(rally_percentage)+"**")
+    rally_percentage = st.sidebar.markdown("Minimum Percentage for Candle to be considered a **Rally: " +
+                                           str(rally_percentage)+"**")
     st.sidebar.markdown("(open_close Column)")
     st.sidebar.markdown("")
     st.sidebar.markdown("Maximum Percentage of Basing candle drop to Rally candle Rise: **"+str(basing_percentage)+"**")
@@ -25,21 +26,22 @@ if option == 'Rally Base Rally':
     symbol = df['Symbol'][0]
     last_time = df['date'].values[-1]
     watch_list = df[(df['onWatch'] == 1) & (df['date'] >= last_time)]
-    watch_list = watch_list[['Symbol','date','open','high','low']]
+    watch_list = watch_list[['Symbol', 'date', 'open', 'high', 'low']]
     df_rbr = pd.read_csv('rbr.csv')
-    df = df[['date','open','high','low','close','open_close','basing_percent','onWatch','rally','base','rbr','Symbol']]
-    df_rbr = df_rbr[['date','open','high','low','close','onWatch']]
+    df = df[['date', 'open', 'high', 'low', 'close', 'open_close', 'basing_percent', 'onWatch', 'rally', 'base', 'rbr',
+             'Symbol']]
+    df_rbr = df_rbr[['date', 'open', 'high', 'low', 'close', 'onWatch']]
 
-    def highlight_basing(x):
-        if x['onWatch'] == 1:
+    def highlight_basing(df_h):
+        if df_h['onWatch'] == 1:
             return ['background-color: lightyellow'] * len(df_rbr.columns)
         else:
             return ['background-color: white'] * (len(df_rbr.columns))
 
-    def highlight_rbr(x):
-        if x['rbr'] == 1:
+    def highlight_rbr(df_h):
+        if df_h['rbr'] == 1:
             return ['background-color: lightgreen'] * len(df.columns)
-        elif x['onWatch'] == 1:
+        elif df_h['onWatch'] == 1:
             return ['background-color: lightyellow'] * len(df.columns)
         else:
             return ['background-color: white'] * (len(df.columns))
@@ -68,8 +70,10 @@ if option == 'Rally Base Rally':
 
 
 if option == 'Rally Base Rally All':
-    symbol = st.sidebar.selectbox("Symbol", ('SPY', 'QQQ', 'AAPL', 'MSFT', 'NIO', 'AMD', 'NVDA', 'BA', 'CCIV', 'BABA', 'NKE', 'DIS', 'FB', 'OXY', 'TWTR', 'TSLA'), 0)
-    rally_percentage = st.sidebar.markdown("Minimum Percentage for Candle to be considered a **Rally: "+str(rally_percentage)+"**")
+    symbol = st.sidebar.selectbox("Symbol", ('SPY', 'QQQ', 'AAPL', 'MSFT', 'NIO', 'AMD', 'NVDA', 'BA', 'CCIV', 'BABA',
+                                             'NKE', 'DIS', 'FB', 'OXY', 'TWTR', 'TSLA'), 0)
+    rally_percentage = st.sidebar.markdown("Minimum Percentage for Candle to be considered a **Rally: "
+                                           + str(rally_percentage)+"**")
     st.sidebar.markdown("(open_close Column)")
     st.sidebar.markdown("")
     st.sidebar.markdown("Maximum Percentage of Basing candle drop to Rally candle Rise: **"+str(basing_percentage)+"**")
@@ -80,24 +84,25 @@ if option == 'Rally Base Rally All':
     df = pd.read_csv('dist/historical_data.csv')
     last_time = df['date'].values[-2]
     watch_list = df[(df['onWatch'] == 1) & (df['date'] >= last_time)]
-    watch_list = watch_list[['Symbol','date','open','high','low','open_close','onWatch']]
+    watch_list = watch_list[['Symbol', 'date', 'open', 'high', 'low', 'open_close', 'onWatch']]
     df = df[df['Symbol'] == symbol]
     df_rbr = pd.read_csv('dist/rbr.csv')
-    df = df[['date','open','high','low','close','open_close','basing_percent','onWatch','rally','base','rbr','Symbol']]
-    df_rbr = df_rbr[['date','open','high','low','close','onWatch','Symbol']]
+    df = df[['date', 'open', 'high', 'low', 'close', 'open_close', 'basing_percent', 'onWatch', 'rally', 'base', 'rbr',
+             'Symbol']]
+    df_rbr = df_rbr[['date', 'open', 'high', 'low', 'close', 'onWatch', 'Symbol']]
     df_rbr_all = df_rbr
     df_rbr = df_rbr[df_rbr['Symbol'] == symbol]
 
-    def highlight_basing(x):
-        if x['onWatch'] == 1:
+    def highlight_basing(df_h):
+        if df_h['onWatch'] == 1:
             return ['background-color: lightyellow'] * len(df_rbr.columns)
         else:
             return ['background-color: white'] * (len(df_rbr.columns))
 
-    def highlight_rbr(x):
-        if x['rbr'] == 1:
+    def highlight_rbr(df_h):
+        if df_h['rbr'] == 1:
             return ['background-color: lightgreen'] * len(df.columns)
-        elif x['onWatch'] == 1:
+        elif df_h['onWatch'] == 1:
             return ['background-color: lightyellow'] * len(df.columns)
         else:
             return ['background-color: white'] * (len(df.columns))
@@ -115,7 +120,7 @@ if option == 'Rally Base Rally All':
         st.subheader('Current Stocks on Watch: Need to Wait for Candle to Close Red (open_close column)')
         st.dataframe(watch_list)
 
-    st.subheader(symbol +' ' + bar_time_frame +' Chart')
+    st.subheader(symbol + ' ' + bar_time_frame + ' Chart')
     st.write("https://www.barchart.com/stocks/quotes/"+symbol+"/interactive-chart")
     df['open_day'] = df['open'].iloc[0]
     open_close_color = alt.condition("datum.open <= datum.close", alt.value("#06982d"), alt.value("#ae1325"))
@@ -134,15 +139,15 @@ if option == 'Rally Base Rally All':
 if option == 'Historical RBR':
     df = pd.read_csv('dist/rbr_count.csv')
     df = df[['Symbol', 'date', 'Count']]
-    min = df['date'].min()
-    max = df['date'].max()
+    min_d = df['date'].min()
+    max_d = df['date'].max()
     min_date = datetime.strptime(df['date'].min(), '%m/%d/%Y')
     max_date = datetime.strptime(df['date'].max(), '%m/%d/%Y')
     days = (max_date - min_date).days
     df_avg = df.groupby(['Symbol'])['Count'].sum().reset_index()
     df_avg['Count'] = np.ceil(df_avg['Count']/days)
 
-    st.title("Historical RBRs from "+min+" to "+max)
+    st.title("Historical RBRs from "+min_d+" to "+max_d)
     st.dataframe(df)
     st.markdown("")
 
@@ -159,4 +164,3 @@ if option == 'Historical RBR':
         properties(width=700, height=350)
     text2 = bar2.mark_text(baseline='bottom').encode(text='Count')
     st.altair_chart(bar2+text2)
-
