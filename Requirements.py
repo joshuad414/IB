@@ -32,7 +32,7 @@ twtr = 'TWTR'
 tsla = 'TSLA'
 nflx = 'NFLX'
 
-stock = nio
+stock = qqq
 symbol = stock
 
 
@@ -49,13 +49,13 @@ duration = '2 D'
 
 
 # Option Data
-option_day = '01'
-option_month = str(time.localtime().tm_mon+1)
+option_day = '09'
+option_month = str(time.localtime().tm_mon)
 option_year = str(time.localtime().tm_year)
 if len(option_month) < 10:
     option_month = '0'+option_month
 option_date = option_year + option_month + option_day
-strike_price = 38
+strike_price = 323
 
 
 # Buying/Selling

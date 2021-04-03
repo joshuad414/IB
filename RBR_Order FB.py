@@ -3,13 +3,14 @@ import numpy as np
 import pandas as pd
 import datetime
 import time
-from Executed_Price import get_executed_price
 from Requirements import symbol, basing_percentage, rally_percentage, option_date, strike_price, qty_buy, qty_sold, \
     sell_1_price, sell_2_price, sell_3_price, sell_4_price, sell_5_price, bar_time_frame
 
-
 ib = IB()
-ib.connect('127.0.0.1', 7497, clientId=3)
+ib.connect('127.0.0.1', 7497, clientId=7)
+
+symbol = 'FB'
+strike_price = 298
 
 stock = Stock(symbol, 'SMART', 'USD')
 market_data = ib.reqMktData(stock, '', False, False)
@@ -81,10 +82,9 @@ def on_pending_ticker(ticker):
             ((t1-t0) > 300 or (t1-t0) == 0):
         ib.placeOrder(option_contract, MarketOrder('BUY', qty_buy))
         t0 = time.time()
-        ib.sleep(3)
         count += qty_buy
+        executed_buy_price = option_data.last
         time_executed = datetime.datetime.now().strftime("%H:%M:%S")
-        executed_buy_price = get_executed_price(symbol)
         exec_trade_list.append(executed_buy_price)
         last_price_list.append(last_price_stock)
         qty_list.append(qty_buy)
