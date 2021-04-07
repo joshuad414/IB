@@ -3,13 +3,12 @@ import numpy as np
 import pandas as pd
 import datetime
 import time
-from Executed_Price import get_executed_price
 from Requirements import symbol, basing_percentage, rally_percentage, option_date, strike_price, qty_buy, qty_sold, \
     sell_1_price, sell_2_price, sell_3_price, sell_4_price, sell_5_price, bar_time_frame
 
 
 ib = IB()
-ib.connect('127.0.0.1', 7497, clientId=3)
+ib.connect('127.0.0.1', 7497, clientId=2)
 
 stock = Stock(symbol, 'SMART', 'USD')
 market_data = ib.reqMktData(stock, '', False, False)
@@ -17,6 +16,21 @@ option_contract = Option(symbol, option_date, strike_price, 'C', 'SMART', '100',
 option_data = ib.reqMktData(option_contract, '', False, False)
 bar = ib.reqHistoricalData(stock, endDateTime='', durationStr='1 D', barSizeSetting=bar_time_frame,
                            whatToShow='MIDPOINT', useRTH=True, keepUpToDate=True)
+positions = ib.positions()
+
+
+def get_executed_price(x):
+    for i in range(0, len(positions)):
+        a = str(positions[i][1])
+        a = a.split("symbol='", 1)[1]
+        a = a.split("',", 1)[0]
+        if x == a:
+            cost = positions[i][3]
+            trade_price = np.round((cost-1)/100, 2)
+            break
+        else:
+            trade_price = 0
+    return trade_price
 
 
 def on_bar_update(bars: BarDataList, has_new_bar: bool):
@@ -64,6 +78,7 @@ time_list = []
 t0 = 0
 t1 = 0
 
+
 def on_pending_ticker(ticker):
     global count, trades, executed_buy_price, exec_trade_list, last_price_list, qty_list, \
         basing_open_list, basing_high_list, time_list, t1, t0
@@ -95,6 +110,7 @@ def on_pending_ticker(ticker):
                                  'Qty': qty_list, 'Basing Open': basing_open_list, 'Basing High': basing_high_list,
                                  'Time': time_list})
         buy_data.to_csv('Executed_Trades/trade_data_'+symbol+'.csv')
+        print(buy_data)
         print(count, 'BUY @', executed_buy_price, time_executed, trades)
 
     # Sell 1

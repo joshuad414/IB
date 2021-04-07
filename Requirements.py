@@ -32,7 +32,7 @@ twtr = 'TWTR'
 tsla = 'TSLA'
 nflx = 'NFLX'
 
-stock = qqq
+stock = spy
 symbol = stock
 
 
@@ -45,7 +45,7 @@ rt_hours = True
 
 # RBR History
 bar_time_frame_historic = '5 mins'
-duration = '2 D'
+duration = '1 D'
 
 
 # Option Data
@@ -55,11 +55,11 @@ option_year = str(time.localtime().tm_year)
 if len(option_month) < 10:
     option_month = '0'+option_month
 option_date = option_year + option_month + option_day
-strike_price = 323
+strike_price = 407
 
 
 # Buying/Selling
-qty_buy = 50
+qty_buy = 5
 qty_sold = qty_buy * (1/5)
 time_threshold = 240
 sell_1_price = 1.025

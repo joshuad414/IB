@@ -7,6 +7,7 @@ ib = IB()
 ib.connect('127.0.0.1', 7497, clientId=10)
 
 df2 = pd.DataFrame()
+stock_list = ['AAPL']
 
 for x in stock_list:
     print(x)
@@ -23,7 +24,7 @@ for x in stock_list:
     df['high_high'] = (df['high'].values > df['high1'].values) & (df['high'].values > df['high2'].values)
     df['rally'] = df['open_close'].values > rally_percentage
     df['rally2'] = df['high_high'].values == True
-    with np.errstate(divide='ignore'):
+    with np.errstate(divide='ignore', invalid='ignore'):
         df['base'] = ((df['rally'].shift().values == True) | (df['rally2'].shift().values == True)) \
                      & ((abs(df['open_close'].values) / abs(df['open_close'].shift().values)) < basing_percentage) \
                      & (df['open_close'].values < 0)
@@ -33,7 +34,7 @@ for x in stock_list:
     df['rbr2'] = (df['rbr'].values == True) \
         | (df['rbr'].shift(periods=-1).values == True) \
         | (df['rbr'].shift(periods=-2).values == True)
-    with np.errstate(divide='ignore'):
+    with np.errstate(divide='ignore', invalid='ignore'):
         df['onWatch'] = (df['open_close'].values < 0) \
                         & (df['rally'].shift().values == True) \
                         & ((abs(df['open_close'].values) / abs(df['open_close'].shift().values)) < basing_percentage)
@@ -48,7 +49,7 @@ for x in stock_list:
     df['bar5'] = ((df['bar4'].values == True) & (df['rally'].values == True)
                   & (df['open_close'].shift(periods=5).values > 0)) * 1
     df['bar'] = (df['bar1'].values + df['bar2'].values + df['bar3'].values + df['bar4'].values + df['bar5'].values)
-    with np.errstate(divide='ignore'):
+    with np.errstate(divide='ignore', invalid='ignore'):
         df['basing_percent'] = abs(df['open_close'].values) / abs(df['open_close'].shift().values)
     df2 = df2.append(df)
 

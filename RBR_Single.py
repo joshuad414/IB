@@ -51,6 +51,7 @@ market_data = ib.reqMktData(stock, '', False, False)
 
 def on_pending_ticker(ticker):
     df = util.df(bar)
+    update_rbr_data(df)
     open_candle = df['open'][len(df) - 2]
     last_price = market_data.last
     print(symbol, 'Last Price:', last_price, ' Basing Open:', open_candle)

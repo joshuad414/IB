@@ -27,7 +27,7 @@ for x in stock_list:
     df['high_high'] = (df['high'].values > df['high1'].values) & (df['high'].values > df['high2'].values)
     df['rally'] = df['open_close'].values > rally_percentage
     df['rally2'] = df['high_high'].values == True
-    with np.errstate(divide='ignore'):
+    with np.errstate(divide='ignore', invalid='ignore'):
         df['base'] = ((df['rally'].shift().values == True) | (df['rally2'].shift().values == True)) \
                   & ((abs(df['open_close'].values) / abs(df['open_close'].shift().values)) < basing_percentage) \
                   & (df['open_close'].values < 0)
@@ -51,4 +51,4 @@ min_date = datetime.strptime(rbr_count['date'].min(), '%m/%d/%Y')
 max_date = datetime.strptime(rbr_count['date'].max(), '%m/%d/%Y')
 
 days = (max_date - min_date).days
-rbr_count.to_csv('dist/rbr_count.csv')
+rbr_count.to_csv('dist/rbr_count' + '.csv')
